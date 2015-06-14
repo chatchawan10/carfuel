@@ -11,7 +11,7 @@ namespace CarFuel.Facts
 {
     public class FillUpFacts
     {
-        public class GeneralUsage
+        public class GeneralUsage : IDisposable
         {
             [Fact]
             public void Basic()
@@ -31,26 +31,43 @@ namespace CarFuel.Facts
             
             [Fact]
             public void DefaultDateShouldBeNow()
-            {
+            {                
                 // Arrange
                 var now = DateTime.Now;
                 SystemTime.SetDateTime(now);
 
                 var f = new FillUp();
+                f.Odometer = 1000;
+                f.IsFull = true;
+                f.Liters = 50.0;
+
                 // Act
                 DateTime dt = f.Date;
                 // Assert
-                Assert.Equal(expected: DateTime.Now, actual: dt);
+                Assert.Equal(expected: now, actual: dt);
+            }
+
+            public void Dispose()
+            {
+                SystemTime.ResetDateTime();
             }
         }
 
         public class KilometerPerLiterProperty
         {
+            private FillUp f1, f2, f3;
+
+            // Test Setup (Constructor is test setup in xUnit.net)
+            public KilometerPerLiterProperty()
+            {
+                f1 = new FillUp();
+                f2 = new FillUp();
+                f3 = new FillUp();             
+            }
             [Fact]
             public void FirstFillUp_HasNoKmL()
             {
                 // Arrange
-                var f1 = new FillUp();
                 f1.Odometer = 1000;
                 f1.IsFull = true;
                 f1.Liters = 50.0;
@@ -64,15 +81,15 @@ namespace CarFuel.Facts
             public void SecondFillUp_HasNoKmL()
             {               
                 // Arrange
-                var f1 = new FillUp();
                 f1.Odometer = 1000;
                 f1.Liters = 50.0;
                 f1.IsFull = true;
 
-                var f2 = new FillUp();
                 f2.Odometer = 1500;
                 f2.Liters = 40.0;
                 f2.IsFull = true;
+
+                f1.NextFillUp = f2;
 
                 double? kml = f1.KilometerPerLiter;
 
@@ -83,17 +100,14 @@ namespace CarFuel.Facts
             public void ThirdFillUp_HasNoKmL()
             {
                 // Arrange
-                var f1 = new FillUp();
                 f1.Odometer = 1000;
                 f1.IsFull = true;
                 f1.Liters = 50.0;
 
-                var f2 = new FillUp();
                 f2.Odometer = 1500;
                 f2.IsFull = true;
                 f2.Liters = 40.0;
 
-                var f3 = new FillUp();
                 f3.Odometer = 2100;
                 f3.IsFull = true;
                 f3.Liters = 50.0;
@@ -104,6 +118,24 @@ namespace CarFuel.Facts
                 double? kml = f2.KilometerPerLiter;
 
                 Assert.Equal(12, kml);
+            }
+        }
+
+        public class NextFillUpProperty
+        {
+            [Fact]
+            public void NextFillUpOdometer_ShouldNolessThanPreviousFillUp()
+            {
+                var f1 = new FillUp();
+                f1.Odometer = 1000;
+
+                var f2 = new FillUp();
+                f2.Odometer = 500;
+
+                Assert.ThrowsAny<Exception>(() =>
+                {                    
+                    f1.NextFillUp = f2;
+                });
             }
         }
     }

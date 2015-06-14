@@ -17,7 +17,21 @@ namespace Carfuel.Models
 
         public DateTime Date { get; set; }
 
-        public FillUp NextFillUp { get; set; }
+        private FillUp _NextFillUp;
+
+        public FillUp NextFillUp
+        {
+            get { return _NextFillUp; }
+            set
+            {
+                if (value.Odometer < this.Odometer)
+                {
+                    throw new ArgumentException("Invalid odometer value", "value");
+                }
+                _NextFillUp = value;
+            }
+        }
+        
 
         public FillUp()
         {
