@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace CarFuel.Facts
 {
@@ -136,6 +137,41 @@ namespace CarFuel.Facts
                 {                    
                     f1.NextFillUp = f2;
                 });
+            }
+        }
+
+        public class KilometerPerLiterProperty_Theory
+        {
+            private ITestOutputHelper output; //to write output in log of testing
+            public KilometerPerLiterProperty_Theory(ITestOutputHelper output)
+            {
+                this.output = output;
+            }
+
+            // make 3 test cases input in one function
+            [Theory]
+            [InlineData(1000, 50, 1500, 40, 12.5)]
+            [InlineData(1500, 40, 2100, 50, 12.0)]
+            [InlineData(2100, 50, 2800, 70, 10.0)]
+            public void GeneralCases(int odo1, double liters1, 
+                                     int odo2, double liters2,
+                                    double kml)
+            {
+                var f1 = new FillUp();
+                f1.Odometer = 1000;
+                f1.Liters = 50.0;
+
+                var f2 = new FillUp();
+                f2.Odometer = 1500;
+                f2.Liters = 40.0;
+
+                f1.NextFillUp = f2;
+
+                output.WriteLine("1st: {0} {1:0.0} liters", odo1, liters1);
+                output.WriteLine("2nd: {0} {1:0.0} liters", odo2, liters2);
+                output.WriteLine("Kilometer/Liter = {0:n2}", f1.KilometerPerLiter);
+
+                Assert.Equal(kml, f1.KilometerPerLiter);
             }
         }
     }
